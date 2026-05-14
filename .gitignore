@@ -1,0 +1,29 @@
+# Build outputs
+build/
+build-*/
+out/
+
+# CMake and IDE state
+.vs/
+.cache/
+CMakeUserPresets.json
+
+# Generated binaries and packages
+*.zip
+*.7z
+*.dll
+*.exe
+*.lib
+*.pdb
+*.ilk
+*.obj
+*.exp
+*.vst3/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.user
+*.suo
+*.VC.db
+*.VC.opendb
