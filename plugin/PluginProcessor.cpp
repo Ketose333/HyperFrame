@@ -40,6 +40,8 @@ constexpr auto kParamRelease = "release";
 constexpr auto kParamLsdjPhase = "lsdj_phase";
 constexpr auto kParamLsdjPhaseMode = "lsdj_phase_mode";
 constexpr auto kParamSlideTime = "slide_time";
+constexpr auto kParamTransposeOctave = "transpose_octave";
+constexpr auto kParamTransposeSemitone = "transpose_semitone";
 constexpr auto kParamSelectedFrame = "selected_frame";
 constexpr auto kParamMotionTable = "motion_table";
 constexpr auto kParamMotionLoop = "motion_loop";
@@ -2155,13 +2157,17 @@ void HyperFrameAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, ju
     auto metadata = hasMidi ? *midiIterator : juce::MidiMessageMetadata {};
     auto nextMidiSample = hasMidi ? metadata.samplePosition : buffer.getNumSamples();
 
+    const int transposeOctave = static_cast<int>(std::round(getParamValue(parameters_, kParamTransposeOctave)));
+    const int transposeSemitone = static_cast<int>(std::round(getParamValue(parameters_, kParamTransposeSemitone)));
+    const int transposeOffset = transposeOctave * 12 + transposeSemitone;
+
     for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
         while (hasMidi && nextMidiSample == sample) {
             const auto message = metadata.getMessage();
             if (message.isNoteOn()) {
-                engine_.noteOn(message.getNoteNumber(), message.getFloatVelocity());
+                engine_.noteOn(std::clamp(message.getNoteNumber() + transposeOffset, 0, 127), message.getFloatVelocity());
             } else if (message.isNoteOff()) {
-                engine_.noteOff(message.getNoteNumber());
+                engine_.noteOff(std::clamp(message.getNoteNumber() + transposeOffset, 0, 127));
             } else if (message.isAllNotesOff() || message.isAllSoundOff()) {
                 engine_.reset();
             } else if (message.isPitchWheel()) {
@@ -3065,6 +3071,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout HyperFrameAudioProcessor::cr
         juce::ParameterID { kParamLsdjPhaseMode, 1 }, "LSDJ Phase Mode", juce::StringArray { "Normal", "Resync", "Resyn2" }, 0));
     voiceGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID { kParamSlideTime, 1 }, "Slide", juce::NormalisableRange<float>(0.0f, 2.0f, kEnvelopeTimeStepSeconds), 0.0f, envelopeAttributes));
+    voiceGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID { kParamTransposeOctave, 1 }, "Octave",
+        juce::NormalisableRange<float>(-4.0f, 4.0f, 1.0f), 0.0f));
+    voiceGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID { kParamTransposeSemitone, 1 }, "Semitone",
+        juce::NormalisableRange<float>(-11.0f, 11.0f, 1.0f), 0.0f));
     voiceGroup->addChild(std::make_unique<juce::AudioParameterBool>(
         juce::ParameterID { kParamMonoMode, 1 }, "Mono", false));
     voiceGroup->addChild(std::make_unique<juce::AudioParameterBool>(

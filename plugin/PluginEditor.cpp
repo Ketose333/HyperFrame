@@ -14,6 +14,8 @@ constexpr auto kParamRelease = "release";
 constexpr auto kParamLsdjPhase = "lsdj_phase";
 constexpr auto kParamLsdjPhaseMode = "lsdj_phase_mode";
 constexpr auto kParamSlideTime = "slide_time";
+constexpr auto kParamTransposeOctave = "transpose_octave";
+constexpr auto kParamTransposeSemitone = "transpose_semitone";
 constexpr auto kParamSelectedFrame = "selected_frame";
 constexpr auto kParamMotionTable = "motion_table";
 constexpr auto kParamMotionLoop = "motion_loop";
@@ -666,6 +668,10 @@ HyperFrameAudioProcessorEditor::HyperFrameAudioProcessorEditor(HyperFrameAudioPr
     configureSlider(releaseSlider_, releaseLabel_, "Release");
     configureSlider(lsdjPhaseSlider_, lsdjPhaseLabel_, "Phase Amt");
     configureSlider(slideTimeSlider_, slideTimeLabel_, "Slide");
+    configureSlider(octaveSlider_, octaveLabel_, "Octave");
+    configureSlider(semitoneSlider_, semitoneLabel_, "Semitone");
+    octaveSlider_.setNumDecimalPlacesToDisplay(0);
+    semitoneSlider_.setNumDecimalPlacesToDisplay(0);
     configureSlider(motionRateSlider_, motionRateLabel_, "Rate");
     configureSlider(motionStepsSlider_, motionStepsLabel_, "Steps");
     configureSlider(commandFrameSlider_, commandFrameLabel_, "Frame");
@@ -749,6 +755,7 @@ HyperFrameAudioProcessorEditor::HyperFrameAudioProcessorEditor(HyperFrameAudioPr
     for (auto* slider : { &waveLengthSlider_, &waveBitsSlider_, &frameSlider_, &attackSlider_, &decaySlider_,
                           &sustainSlider_, &releaseSlider_,
                           &lsdjPhaseSlider_, &slideTimeSlider_,
+                          &octaveSlider_, &semitoneSlider_,
                           &motionRateSlider_, &motionStepsSlider_, &commandFrameSlider_,
                           &commandPitchSlider_, &commandPhaseSlider_, &commandLevelSlider_,
                           &gainSlider_ }) {
@@ -758,6 +765,7 @@ HyperFrameAudioProcessorEditor::HyperFrameAudioProcessorEditor(HyperFrameAudioPr
     for (auto* label : { &waveLengthLabel_, &waveBitsLabel_, &frameLabel_, &attackLabel_, &decayLabel_,
                          &sustainLabel_, &releaseLabel_,
                          &lsdjPhaseLabel_, &slideTimeLabel_,
+                         &octaveLabel_, &semitoneLabel_,
                          &motionRateLabel_, &motionStepsLabel_, &commandFrameLabel_,
                          &commandPitchLabel_, &commandPhaseLabel_, &commandLevelLabel_,
                          &gainLabel_ }) {
@@ -1369,6 +1377,8 @@ HyperFrameAudioProcessorEditor::HyperFrameAudioProcessorEditor(HyperFrameAudioPr
     releaseAttachment_ = std::make_unique<SliderAttachment>(parameters, kParamRelease, releaseSlider_);
     lsdjPhaseAttachment_ = std::make_unique<SliderAttachment>(parameters, kParamLsdjPhase, lsdjPhaseSlider_);
     slideTimeAttachment_ = std::make_unique<SliderAttachment>(parameters, kParamSlideTime, slideTimeSlider_);
+    octaveAttachment_    = std::make_unique<SliderAttachment>(parameters, kParamTransposeOctave, octaveSlider_);
+    semitoneAttachment_  = std::make_unique<SliderAttachment>(parameters, kParamTransposeSemitone, semitoneSlider_);
     motionRateAttachment_ = std::make_unique<SliderAttachment>(parameters, kParamMotionRate, motionRateSlider_);
     updateMotionRateDisplay();
     motionStepsAttachment_ = std::make_unique<SliderAttachment>(parameters, kParamMotionSteps, motionStepsSlider_);
@@ -1472,13 +1482,17 @@ void HyperFrameAudioProcessorEditor::resized() {
     interpolationToggle_.setBounds(sourceToggleArea.removeFromTop(24));
     rawPlayFullToggle_.setBounds(sourceToggleArea.removeFromTop(24));
 
-    const auto voiceWidth = middleRow.getWidth() / 4;
+    const auto voiceWidth = middleRow.getWidth() / 6;
     lsdjPhaseModeLabel_.setBounds(middleRow.removeFromLeft(voiceWidth).removeFromTop(18));
     lsdjPhaseModeBox_.setBounds(lsdjPhaseModeLabel_.getBounds().withY(lsdjPhaseModeLabel_.getBottom()).withHeight(26).reduced(8, 0));
     lsdjPhaseLabel_.setBounds(middleRow.removeFromLeft(voiceWidth).removeFromTop(18));
     lsdjPhaseSlider_.setBounds(lsdjPhaseLabel_.getBounds().withY(lsdjPhaseLabel_.getBottom()).withHeight(54));
     slideTimeLabel_.setBounds(middleRow.removeFromLeft(voiceWidth).removeFromTop(18));
     slideTimeSlider_.setBounds(slideTimeLabel_.getBounds().withY(slideTimeLabel_.getBottom()).withHeight(54));
+    octaveLabel_.setBounds(middleRow.removeFromLeft(voiceWidth).removeFromTop(18));
+    octaveSlider_.setBounds(octaveLabel_.getBounds().withY(octaveLabel_.getBottom()).withHeight(54));
+    semitoneLabel_.setBounds(middleRow.removeFromLeft(voiceWidth).removeFromTop(18));
+    semitoneSlider_.setBounds(semitoneLabel_.getBounds().withY(semitoneLabel_.getBottom()).withHeight(54));
     monoToggle_.setBounds(middleRow.reduced(10, 18));
 
     const auto commandWidth = commandRow.getWidth() / 5;

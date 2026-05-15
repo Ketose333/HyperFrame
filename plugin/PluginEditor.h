@@ -86,6 +86,8 @@ private:
     juce::Slider commandPhaseSlider_;
     juce::Slider commandLevelSlider_;
     juce::Slider gainSlider_;
+    juce::Slider octaveSlider_;
+    juce::Slider semitoneSlider_;
     juce::ToggleButton interpolationToggle_;
     juce::ToggleButton rawPlayFullToggle_;
     juce::ToggleButton commandTableToggle_;
@@ -122,6 +124,8 @@ private:
     juce::Label commandPhaseLabel_;
     juce::Label commandLevelLabel_;
     juce::Label gainLabel_;
+    juce::Label octaveLabel_;
+    juce::Label semitoneLabel_;
     juce::Label presetLabel_;
     juce::Label commandStepLabel_;
     juce::Label engineModeLabel_;
@@ -144,6 +148,8 @@ private:
     std::unique_ptr<SliderAttachment> releaseAttachment_;
     std::unique_ptr<SliderAttachment> lsdjPhaseAttachment_;
     std::unique_ptr<SliderAttachment> slideTimeAttachment_;
+    std::unique_ptr<SliderAttachment> octaveAttachment_;
+    std::unique_ptr<SliderAttachment> semitoneAttachment_;
     std::unique_ptr<SliderAttachment> motionRateAttachment_;
     std::unique_ptr<SliderAttachment> motionStepsAttachment_;
     std::unique_ptr<SliderAttachment> gainAttachment_;
