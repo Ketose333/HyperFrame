@@ -2253,6 +2253,8 @@ void HyperFrameAudioProcessor::setCurrentProgram(int index) {
     setParameterValue(kParamMotionLoopStart, 0.0f);
     setParameterValue(kParamEngineMode, static_cast<float>(engineModeIndex(program.engineMode)));
     setParameterValue(kParamMonoMode, 0.0f);
+    setParameterValue(kParamAdsrOverride,
+        hyperframe::dsp::isHardwareWaveEngineMode(program.engineMode) ? 0.0f : 1.0f);
     setParameterValue(kParamGain, program.gain);
 
     for (int stepIndex = 0; stepIndex < hyperframe::dsp::kCommandStepCount; ++stepIndex) {
@@ -3066,7 +3068,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout HyperFrameAudioProcessor::cr
     voiceGroup->addChild(std::make_unique<juce::AudioParameterBool>(
         juce::ParameterID { kParamMonoMode, 1 }, "Mono", false));
     voiceGroup->addChild(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID { kParamAdsrOverride, 1 }, "ADSR Override", false));
+        juce::ParameterID { kParamAdsrOverride, 1 }, "ADSR Override", true));
     voiceGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID { kParamGain, 1 }, "Gain", juce::NormalisableRange<float>(0.0f, 1.5f, 0.001f), 0.5f));
     layout.add(std::move(voiceGroup));
@@ -3162,8 +3164,9 @@ void HyperFrameAudioProcessor::updateEngineParameters() {
     commandSettings.phaseMode = lsdjPhaseModeFromIndex(static_cast<int>(getParamValue(parameters_, kParamLsdjPhaseMode)));
     engine_.setCommandSettings(commandSettings);
 
+    const auto adsrActive = getParamValue(parameters_, kParamAdsrOverride) > 0.5f;
     hyperframe::dsp::AdsrEnvelope::Settings envelope;
-    if (isHardwareWaveMode) {
+    if (!adsrActive) {
         envelope.attackSeconds = 0.0f;
         envelope.decaySeconds = 0.0f;
         envelope.sustainLevel = 1.0f;
@@ -3224,6 +3227,7 @@ void HyperFrameAudioProcessor::applyEngineModeProfile(hyperframe::dsp::CommandSe
 
     switch (engineMode) {
     case hyperframe::dsp::CommandSettings::EngineMode::Draw:
+        setParameterValue(kParamAdsrOverride, 1.0f);
         for (int stepIndex = 0; stepIndex < hyperframe::dsp::kCommandStepCount; ++stepIndex) {
             const auto pitchId = motionParamId(stepIndex, "pitch");
             const auto phaseId = motionParamId(stepIndex, "phase");
@@ -3238,6 +3242,7 @@ void HyperFrameAudioProcessor::applyEngineModeProfile(hyperframe::dsp::CommandSe
         setParameterValue(kParamWaveLength, static_cast<float>(hyperframe::dsp::hardwareWaveLength(engineMode)));
         setParameterValue(kParamWaveBits, static_cast<float>(hyperframe::dsp::hardwareWaveBitDepth(engineMode)));
         setParameterValue(kParamInterpolation, 0.0f);
+        setParameterValue(kParamAdsrOverride, 0.0f);
         for (int stepIndex = 0; stepIndex < hyperframe::dsp::kCommandStepCount; ++stepIndex) {
             const auto pitchId = motionParamId(stepIndex, "pitch");
             const auto phaseId = motionParamId(stepIndex, "phase");
@@ -3254,6 +3259,7 @@ void HyperFrameAudioProcessor::applyEngineModeProfile(hyperframe::dsp::CommandSe
         setParameterValue(kParamWaveLength, static_cast<float>(hyperframe::dsp::hardwareWaveLength(engineMode)));
         setParameterValue(kParamWaveBits, static_cast<float>(hyperframe::dsp::hardwareWaveBitDepth(engineMode)));
         setParameterValue(kParamInterpolation, 0.0f);
+        setParameterValue(kParamAdsrOverride, 0.0f);
         for (int stepIndex = 0; stepIndex < hyperframe::dsp::kCommandStepCount; ++stepIndex) {
             const auto pitchId = motionParamId(stepIndex, "pitch");
             const auto phaseId = motionParamId(stepIndex, "phase");
@@ -3265,6 +3271,7 @@ void HyperFrameAudioProcessor::applyEngineModeProfile(hyperframe::dsp::CommandSe
         break;
 
     case hyperframe::dsp::CommandSettings::EngineMode::Raw:
+        setParameterValue(kParamAdsrOverride, 1.0f);
         setParameterValue(kParamSelectedFrame, 1.0f);
         for (int stepIndex = 0; stepIndex < hyperframe::dsp::kCommandStepCount; ++stepIndex) {
             const auto pitchId = motionParamId(stepIndex, "pitch");

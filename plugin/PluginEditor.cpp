@@ -1641,11 +1641,11 @@ void HyperFrameAudioProcessorEditor::updateModeLabels() {
     commandClockBox_.setSelectedId(isBpmClock ? 2 : 1, juce::dontSendNotification);
     updateMotionRateDisplay();
 
-    const auto adsrOverride = parameterValue(processor_.parameters(), kParamAdsrOverride) > 0.5f;
-    attackSlider_.setEnabled(!isHardwareWave || adsrOverride);
-    decaySlider_.setEnabled(!isHardwareWave || adsrOverride);
-    sustainSlider_.setEnabled(!isHardwareWave || adsrOverride);
-    releaseSlider_.setEnabled(!isHardwareWave || adsrOverride);
+    const auto adsrActive = parameterValue(processor_.parameters(), kParamAdsrOverride) > 0.5f;
+    attackSlider_.setEnabled(adsrActive);
+    decaySlider_.setEnabled(adsrActive);
+    sustainSlider_.setEnabled(adsrActive);
+    releaseSlider_.setEnabled(adsrActive);
     commandFrameSlider_.setEnabled(!isRaw);
     commandPitchSlider_.setEnabled(true);
     commandPhaseSlider_.setEnabled(!isRaw);
