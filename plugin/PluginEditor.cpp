@@ -24,6 +24,7 @@ constexpr auto kParamMotionLoopStart = "motion_loop_start";
 constexpr auto kParamEngineMode = "engine_mode";
 constexpr auto kParamRawPlayFull = "raw_play_full";
 constexpr auto kParamMonoMode = "mono_mode";
+constexpr auto kParamAdsrOverride = "adsr_override";
 constexpr auto kParamGain = "gain";
 constexpr double kGbAmplitudeStep = 1.0 / 15.0;
 constexpr double kLsdjWaveVolumeStep = 1.0 / 3.0;
@@ -1348,6 +1349,11 @@ HyperFrameAudioProcessorEditor::HyperFrameAudioProcessorEditor(HyperFrameAudioPr
     monoToggle_.setColour(juce::ToggleButton::textColourId, juce::Colour::fromRGB(218, 224, 228));
     addAndMakeVisible(monoToggle_);
 
+    adsrOverrideToggle_.setButtonText("Env");
+    adsrOverrideToggle_.setColour(juce::ToggleButton::tickColourId, accentColour());
+    adsrOverrideToggle_.setColour(juce::ToggleButton::textColourId, juce::Colour::fromRGB(218, 224, 228));
+    addAndMakeVisible(adsrOverrideToggle_);
+
     commandFrameSlider_.onValueChange = [this] { setMotionStepParameter("frame", static_cast<float>(commandFrameSlider_.getValue())); };
     commandPitchSlider_.onValueChange = [this] { setMotionStepParameter("pitch", static_cast<float>(commandPitchSlider_.getValue())); };
     commandPhaseSlider_.onValueChange = [this] { setMotionStepParameter("phase", static_cast<float>(commandPhaseSlider_.getValue())); };
@@ -1372,6 +1378,7 @@ HyperFrameAudioProcessorEditor::HyperFrameAudioProcessorEditor(HyperFrameAudioPr
     commandTableAttachment_ = std::make_unique<ButtonAttachment>(parameters, kParamMotionTable, commandTableToggle_);
     motionLoopAttachment_ = std::make_unique<ButtonAttachment>(parameters, kParamMotionLoop, motionLoopToggle_);
     monoAttachment_ = std::make_unique<ButtonAttachment>(parameters, kParamMonoMode, monoToggle_);
+    adsrOverrideAttachment_ = std::make_unique<ButtonAttachment>(parameters, kParamAdsrOverride, adsrOverrideToggle_);
     engineModeBox_.setSelectedId(static_cast<int>(parameterValue(parameters, kParamEngineMode)) + 1, juce::dontSendNotification);
     commandClockAttachment_ = std::make_unique<ComboBoxAttachment>(parameters, kParamMotionClockMode, commandClockBox_);
     lsdjPhaseModeAttachment_ = std::make_unique<ComboBoxAttachment>(parameters, kParamLsdjPhaseMode, lsdjPhaseModeBox_);
@@ -1402,7 +1409,7 @@ void HyperFrameAudioProcessorEditor::resized() {
     }
 
     auto area = getLocalBounds().reduced(14);
-    waveformDisplay_.setBounds(area.removeFromTop(180).reduced(24, 0));
+    waveformDisplay_.setBounds(area.removeFromTop(180));
     area.removeFromTop(8);
 
     auto toolRow = area.removeFromTop(34);
@@ -1494,7 +1501,7 @@ void HyperFrameAudioProcessorEditor::resized() {
     commandLevelLabel_.setBounds(commandLaneRow.removeFromLeft(commandLaneWidth).removeFromTop(18));
     commandLevelSlider_.setBounds(commandLevelLabel_.getBounds().withY(commandLevelLabel_.getBottom()).withHeight(54));
 
-    const auto envelopeWidth = bottomRow.getWidth() / 4;
+    const auto envelopeWidth = bottomRow.getWidth() / 5;
     attackLabel_.setBounds(bottomRow.removeFromLeft(envelopeWidth).removeFromTop(18));
     attackSlider_.setBounds(attackLabel_.getBounds().withY(attackLabel_.getBottom()).withHeight(54));
     decayLabel_.setBounds(bottomRow.removeFromLeft(envelopeWidth).removeFromTop(18));
@@ -1503,6 +1510,7 @@ void HyperFrameAudioProcessorEditor::resized() {
     sustainSlider_.setBounds(sustainLabel_.getBounds().withY(sustainLabel_.getBottom()).withHeight(54));
     releaseLabel_.setBounds(bottomRow.removeFromLeft(envelopeWidth).removeFromTop(18));
     releaseSlider_.setBounds(releaseLabel_.getBounds().withY(releaseLabel_.getBottom()).withHeight(54));
+    adsrOverrideToggle_.setBounds(bottomRow.reduced(10, 18));
 
     keyboardComponent_.setBounds(keyboardRow.reduced(6, 6));
 }
@@ -1633,10 +1641,11 @@ void HyperFrameAudioProcessorEditor::updateModeLabels() {
     commandClockBox_.setSelectedId(isBpmClock ? 2 : 1, juce::dontSendNotification);
     updateMotionRateDisplay();
 
-    attackSlider_.setEnabled(!isHardwareWave);
-    decaySlider_.setEnabled(!isHardwareWave);
-    sustainSlider_.setEnabled(!isHardwareWave);
-    releaseSlider_.setEnabled(!isHardwareWave);
+    const auto adsrOverride = parameterValue(processor_.parameters(), kParamAdsrOverride) > 0.5f;
+    attackSlider_.setEnabled(!isHardwareWave || adsrOverride);
+    decaySlider_.setEnabled(!isHardwareWave || adsrOverride);
+    sustainSlider_.setEnabled(!isHardwareWave || adsrOverride);
+    releaseSlider_.setEnabled(!isHardwareWave || adsrOverride);
     commandFrameSlider_.setEnabled(!isRaw);
     commandPitchSlider_.setEnabled(true);
     commandPhaseSlider_.setEnabled(!isRaw);

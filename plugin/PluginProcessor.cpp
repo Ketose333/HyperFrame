@@ -49,6 +49,7 @@ constexpr auto kParamMotionSteps = "motion_steps";
 constexpr auto kParamMotionLoopStart = "motion_loop_start";
 constexpr auto kParamEngineMode = "engine_mode";
 constexpr auto kParamMonoMode = "mono_mode";
+constexpr auto kParamAdsrOverride = "adsr_override";
 constexpr auto kParamGain = "gain";
 constexpr auto kWaveTableStateType = "WAVE_TABLE";
 constexpr auto kWaveFramesStateType = "WAVE_FRAMES";
@@ -2251,7 +2252,7 @@ void HyperFrameAudioProcessor::setCurrentProgram(int index) {
     setParameterValue(kParamMotionSteps, static_cast<float>(program.motionSteps));
     setParameterValue(kParamMotionLoopStart, 0.0f);
     setParameterValue(kParamEngineMode, static_cast<float>(engineModeIndex(program.engineMode)));
-    setParameterValue(kParamMonoMode, hyperframe::dsp::isHardwareWaveEngineMode(program.engineMode) ? 1.0f : 0.0f);
+    setParameterValue(kParamMonoMode, 0.0f);
     setParameterValue(kParamGain, program.gain);
 
     for (int stepIndex = 0; stepIndex < hyperframe::dsp::kCommandStepCount; ++stepIndex) {
@@ -3064,6 +3065,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout HyperFrameAudioProcessor::cr
         juce::ParameterID { kParamSlideTime, 1 }, "Slide", juce::NormalisableRange<float>(0.0f, 2.0f, kEnvelopeTimeStepSeconds), 0.0f, envelopeAttributes));
     voiceGroup->addChild(std::make_unique<juce::AudioParameterBool>(
         juce::ParameterID { kParamMonoMode, 1 }, "Mono", false));
+    voiceGroup->addChild(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID { kParamAdsrOverride, 1 }, "ADSR Override", false));
     voiceGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID { kParamGain, 1 }, "Gain", juce::NormalisableRange<float>(0.0f, 1.5f, 0.001f), 0.5f));
     layout.add(std::move(voiceGroup));
@@ -3235,7 +3238,6 @@ void HyperFrameAudioProcessor::applyEngineModeProfile(hyperframe::dsp::CommandSe
         setParameterValue(kParamWaveLength, static_cast<float>(hyperframe::dsp::hardwareWaveLength(engineMode)));
         setParameterValue(kParamWaveBits, static_cast<float>(hyperframe::dsp::hardwareWaveBitDepth(engineMode)));
         setParameterValue(kParamInterpolation, 0.0f);
-        setParameterValue(kParamMonoMode, 1.0f);
         for (int stepIndex = 0; stepIndex < hyperframe::dsp::kCommandStepCount; ++stepIndex) {
             const auto pitchId = motionParamId(stepIndex, "pitch");
             const auto phaseId = motionParamId(stepIndex, "phase");
@@ -3252,7 +3254,6 @@ void HyperFrameAudioProcessor::applyEngineModeProfile(hyperframe::dsp::CommandSe
         setParameterValue(kParamWaveLength, static_cast<float>(hyperframe::dsp::hardwareWaveLength(engineMode)));
         setParameterValue(kParamWaveBits, static_cast<float>(hyperframe::dsp::hardwareWaveBitDepth(engineMode)));
         setParameterValue(kParamInterpolation, 0.0f);
-        setParameterValue(kParamMonoMode, 1.0f);
         for (int stepIndex = 0; stepIndex < hyperframe::dsp::kCommandStepCount; ++stepIndex) {
             const auto pitchId = motionParamId(stepIndex, "pitch");
             const auto phaseId = motionParamId(stepIndex, "phase");

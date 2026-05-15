@@ -91,6 +91,7 @@ private:
     juce::ToggleButton commandTableToggle_;
     juce::ToggleButton motionLoopToggle_;
     juce::ToggleButton monoToggle_;
+    juce::ToggleButton adsrOverrideToggle_;
     juce::ComboBox presetBox_;
     juce::ComboBox commandStepBox_;
     juce::ComboBox engineModeBox_;
@@ -151,6 +152,7 @@ private:
     std::unique_ptr<ButtonAttachment> commandTableAttachment_;
     std::unique_ptr<ButtonAttachment> motionLoopAttachment_;
     std::unique_ptr<ButtonAttachment> monoAttachment_;
+    std::unique_ptr<ButtonAttachment> adsrOverrideAttachment_;
     std::unique_ptr<ComboBoxAttachment> commandClockAttachment_;
     std::unique_ptr<ComboBoxAttachment> lsdjPhaseModeAttachment_;
     std::array<juce::Rectangle<int>, 8> sectionBounds_;
